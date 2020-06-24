@@ -1,0 +1,200 @@
+{
+    "family": "stock-trade",
+    "taskRoleArn": "arn:aws:iam::<account-id>:role/ECSTaskRole",
+    "executionRoleArn": "arn:aws:iam::<account-id>:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "api-endpoint",
+            "image": "<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/fin-micro/stock-trade/stock-trade-endpoint",
+            "portMappings": [
+                {
+                    "containerPort": 8080,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                { "name": "DBMS", "value": "mysql" },
+                { "name": "DB_USERNAME", "value": "user" },
+                { "name": "DB_PASSWORD", "value": "password" },
+                { "name": "DB_HOST_MASTER", "value": "(<rds-endpoint>:3306)" },
+                { "name": "DB_HOST_READ", "value": "(<rds-endpoint>:3306)" },
+                { "name": "DB_NAME", "value": "StockTrade" },
+                { "name": "PORT_NUMBER", "value": "8080" },
+                { "name": "DYNAMODB_ENDPOINT", "value": "" },
+                { "name": "TRADE_TOPIC_ARN", "value": "arn:aws:sns:ap-northeast-1:<account-id>:send-stock-order-trades" },
+                { "name": "STOCK_CONTRACT_TRADE_QUE", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-contract-trades-que" },
+                { "name": "STOCK_CONTRACT_TRADE_MAX_MESSAGES", "value": "10" },
+                { "name": "STOCK_CONTRACT_TRADE_POLLING_TIME", "value": "20" },
+                { "name": "BALANCE_SERVICE_URL", "value": "http://stock-balance-service.fin-micro.local:8080/" },
+                { "name": "BALANCE_RESOURCE", "value": "balance" },
+                { "name": "STOCK_ORDER_TRADE_QUE", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-order-trades-que" },
+                { "name": "STOCK_ORDER_TRADE_QUE_NAME", "value": "stock-order-trades-que" },
+                { "name": "STOCK_ORDER_MESSAGE_MODE", "value": "sqs" },
+                { "name": "SERVICE_NAME", "value": "stock-trade-service" },
+                { "name": "STOCK_WATCH_TRADES", "value": "stock-watch-cntract-trades" }
+            ],
+            "ulimits": [
+                {
+                    "name": "msgqueue",
+                    "softLimit": 0,
+                    "hardLimit": 0
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-trade",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "apl"
+                }
+            }
+        },
+        {
+            "name": "watch-contract-trades",
+            "image": "<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/fin-micro/stock-trade/stock-watch-contract-trades",
+            "essential": true,
+            "environment": [
+                { "name": "DBMS", "value": "mysql" },
+                { "name": "DB_USERNAME", "value": "user" },
+                { "name": "DB_PASSWORD", "value": "password" },
+                { "name": "DB_HOST_MASTER", "value": "(<rds-endpoint>:3306)" },
+                { "name": "DB_HOST_READ", "value": "(<rds-endpoint>:3306)" },
+                { "name": "DB_NAME", "value": "StockTrade" },
+                { "name": "PORT_NUMBER", "value": "8080" },
+                { "name": "DYNAMODB_ENDPOINT", "value": "" },
+                { "name": "TRADE_TOPIC_ARN", "value": "arn:aws:sns:ap-northeast-1:<account-id>:send-stock-order-trades" },
+                { "name": "STOCK_CONTRACT_TRADE_QUE", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-contract-trades-que" },
+                { "name": "STOCK_CONTRACT_TRADE_MAX_MESSAGES", "value": "10" },
+                { "name": "STOCK_CONTRACT_TRADE_POLLING_TIME", "value": "20" },
+                { "name": "BALANCE_SERVICE_URL", "value": "http://stock-balance-service.fin-micro.local:8080/" },
+                { "name": "BALANCE_RESOURCE", "value": "balance" },
+                { "name": "STOCK_ORDER_TRADE_QUE", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-order-trades-que" },
+                { "name": "STOCK_ORDER_TRADE_QUE_NAME", "value": "stock-order-trades-que" },
+                { "name": "STOCK_ORDER_MESSAGE_MODE", "value": "sqs" },
+                { "name": "SERVICE_NAME", "value": "stock-trade-service" },
+                { "name": "STOCK_WATCH_TRADES", "value": "stock-watch-cntract-trades" }
+            ],
+            "ulimits": [
+                {
+                    "name": "msgqueue",
+                    "softLimit": 0,
+                    "hardLimit": 0
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-trade",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "apl"
+                }
+            }
+        },
+        {
+            "name": "envoy",
+            "image": "840364872350.dkr.ecr.us-west-2.amazonaws.com/aws-appmesh-envoy:v1.12.1.0-prod",
+            "essential": true,
+            "memory": "500",
+            "environment": [
+                {
+                    "name": "APPMESH_VIRTUAL_NODE_NAME",
+                    "value": "mesh/fin-apps/virtualNode/stock-trade-service"
+                },
+                {
+                    "name": "ENABLE_ENVOY_XRAY_TRACING",
+                    "value": "1"
+                }
+            ],
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE"
+                ],
+                "startPeriod": 10,
+                "interval": 5,
+                "timeout": 2,
+                "retries": 3
+            },
+            "user": "1337",
+            "portMappings": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-trade",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "envoy"
+                }
+            }
+        },
+        {
+            "name": "xray-daemon",
+            "image": "amazon/aws-xray-daemon",
+            "cpu": 32,
+            "memoryReservation": 256,
+            "portMappings" : [
+                {
+                    "hostPort": 0,
+                    "containerPort": 2000,
+                    "protocol": "udp"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-trade",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "xray-daemon"
+                }
+            }
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "memory": "512",
+    "cpu": "256",
+    "tags": [
+        {
+            "key": "Name",
+            "value": "stock-trade"
+        }
+    ],
+    "volumes": [],
+    "placementConstraints": [],
+    "proxyConfiguration": {
+        "containerName": "envoy",
+        "type": "APPMESH",
+        "properties": [
+            {
+                "name": "IgnoredUID",
+                "value": "1337"
+            },
+            {
+                "name": "IgnoredGID",
+                "value": ""
+            },
+            {
+                "name": "AppPorts",
+                "value": "8080"
+            },
+            {
+                "name": "ProxyIngressPort",
+                "value": "15000"
+            },
+            {
+                "name": "ProxyEgressPort",
+                "value": "15001"
+            },
+            {
+                "name": "EgressIgnoredPorts",
+                "value": "443,3306"
+            },
+            {
+                "name": "EgressIgnoredIPs",
+                "value": "169.254.170.2,169.254.169.254"
+            }
+        ]
+    }
+}

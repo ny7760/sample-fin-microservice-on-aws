@@ -1,0 +1,203 @@
+{
+    "family": "stock-market",
+    "taskRoleArn": "arn:aws:iam::<account-id>:role/ECSTaskRole",
+    "executionRoleArn": "arn:aws:iam::<account-id>:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "publish-prices",
+            "image": "<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/fin-micro/stock-market/stock-publish-prices",
+            "essential": true,
+            "environment": [
+                { "name": "STOCK_PUBLISH_PRICES", "value": "market/publish-prices" },
+                { "name": "STOCK_WATCH_TRADES", "value": "market/watch-trades" },
+                { "name": "PRICE_TOPIC_ARN", "value": "arn:aws:sns:ap-northeast-1:<account-id>:send-stock-prices" },
+                { "name": "PRICE_TOPIC_NAME", "value": "send-stock-prices" },
+                { "name": "CONTRACT_TRADE_TOPIC_ARN", "value": "arn:aws:sns:ap-northeast-1:<account-id>:send-stock-contract-trades" },
+                { "name": "CONTRACT_TRADE_TOPIC_NAME", "value": "send-stock-contract-trades" },
+                { "name": "AWS_REGION", "value": "ap-northeast-1" },
+                { "name": "SAMPLE_STOCK_CODE", "value": "A002" },
+                { "name": "SAMPLE_STOCK_NAME", "value": "Sample IT Company2" },
+                { "name": "FIRST_PRICE", "value": "2650" },
+                { "name": "STOCK_ORDER_TRADE_QUE", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-order-trades-que" },
+                { "name": "STOCK_ORDER_TRADE_QUE_NAME", "value": "stock-order-trades-que" },
+                { "name": "STOCK_ORDER_TRADE_MAX_MESSAGES", "value": "10" },
+                { "name": "STOCK_ORDER_TRADE_POLLING_TIME", "value": "20" },
+                { "name": "GET_PRICE_MINUTE", "value": "5" },
+                { "name": "GET_NEXT_PRICE_WAIT_SECOND", "value": "60" },
+                { "name": "PRICE_QUE_URL", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-prices-que" },
+                { "name": "PRICE_QUE_NAME", "value": "stock-prices-que" },
+                { "name": "STOCK_PRICE_MESSAGE_MODE", "value": "sqs" },
+                { "name": "CONTRACT_TRADE_QUE_URL", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-contract-trades-que" },
+                { "name": "CONTRACT_TRADE_QUE_NAME", "value": "stock-contract-trades-que" },
+                { "name": "CONTRACT_TRADE_MESSAGE_MODE", "value": "sqs" },
+                { "name": "SERVICE_NAME", "value": "stock-market-service" }
+            ],
+            "ulimits": [
+                {
+                    "name": "msgqueue",
+                    "softLimit": 0,
+                    "hardLimit": 0
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-market",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "apl"
+                }
+            }
+        },
+        {
+            "name": "watch-ordered-trades",
+            "image": "<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/fin-micro/stock-market/stock-watch-trades",
+            "essential": true,
+            "environment": [
+                { "name": "STOCK_PUBLISH_PRICES", "value": "market/publish-prices" },
+                { "name": "STOCK_WATCH_TRADES", "value": "market/watch-trades" },
+                { "name": "PRICE_TOPIC_ARN", "value": "arn:aws:sns:ap-northeast-1:<account-id>:send-stock-prices" },
+                { "name": "PRICE_TOPIC_NAME", "value": "send-stock-prices" },
+                { "name": "CONTRACT_TRADE_TOPIC_ARN", "value": "arn:aws:sns:ap-northeast-1:<account-id>:send-stock-contract-trades" },
+                { "name": "CONTRACT_TRADE_TOPIC_NAME", "value": "send-stock-contract-trades" },
+                { "name": "AWS_REGION", "value": "ap-northeast-1" },
+                { "name": "SAMPLE_STOCK_CODE", "value": "A002" },
+                { "name": "SAMPLE_STOCK_NAME", "value": "Sample IT Company2" },
+                { "name": "FIRST_PRICE", "value": "2650" },
+                { "name": "STOCK_ORDER_TRADE_QUE", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-order-trades-que" },
+                { "name": "STOCK_ORDER_TRADE_QUE_NAME", "value": "stock-order-trades-que" },
+                { "name": "STOCK_ORDER_TRADE_MAX_MESSAGES", "value": "10" },
+                { "name": "STOCK_ORDER_TRADE_POLLING_TIME", "value": "20" },
+                { "name": "GET_PRICE_MINUTE", "value": "5" },
+                { "name": "GET_NEXT_PRICE_WAIT_SECOND", "value": "60" },
+                { "name": "PRICE_QUE_URL", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-prices-que" },
+                { "name": "PRICE_QUE_NAME", "value": "stock-prices-que" },
+                { "name": "STOCK_PRICE_MESSAGE_MODE", "value": "sqs" },
+                { "name": "CONTRACT_TRADE_QUE_URL", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-contract-trades-que" },
+                { "name": "CONTRACT_TRADE_QUE_NAME", "value": "stock-contract-trades-que" },
+                { "name": "CONTRACT_TRADE_MESSAGE_MODE", "value": "sqs" },
+                { "name": "SERVICE_NAME", "value": "stock-market-service" }
+
+            ],
+            "ulimits": [
+                {
+                    "name": "msgqueue",
+                    "softLimit": 0,
+                    "hardLimit": 0
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-market",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "apl"
+                }
+            }
+        },
+        {
+            "name": "envoy",
+            "image": "840364872350.dkr.ecr.us-west-2.amazonaws.com/aws-appmesh-envoy:v1.12.1.0-prod",
+            "essential": true,
+            "memory": "500",
+            "environment": [
+                {
+                    "name": "APPMESH_VIRTUAL_NODE_NAME",
+                    "value": "mesh/fin-apps/virtualNode/stock-market-service"
+                },
+                {
+                    "name": "ENABLE_ENVOY_XRAY_TRACING",
+                    "value": "1"
+                }
+            ],
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE"
+                ],
+                "startPeriod": 10,
+                "interval": 5,
+                "timeout": 2,
+                "retries": 3
+            },
+            "user": "1337",
+            "portMappings": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-market",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "envoy"
+                }
+            }
+        },
+        {
+            "name": "xray-daemon",
+            "image": "amazon/aws-xray-daemon",
+            "cpu": 32,
+            "memoryReservation": 256,
+            "portMappings" : [
+                {
+                    "hostPort": 0,
+                    "containerPort": 2000,
+                    "protocol": "udp"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-market",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "xray-daemon"
+                }
+            }
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "memory": "512",
+    "cpu": "256",
+    "tags": [
+        {
+            "key": "Name",
+            "value": "stock-market"
+        }
+    ],
+    "volumes": [],
+    "placementConstraints": [],
+    "proxyConfiguration": {
+        "containerName": "envoy",
+        "type": "APPMESH",
+        "properties": [
+            {
+                "name": "IgnoredUID",
+                "value": "1337"
+            },
+            {
+                "name": "IgnoredGID",
+                "value": ""
+            },
+            {
+                "name": "AppPorts",
+                "value": "8080"
+            },
+            {
+                "name": "ProxyIngressPort",
+                "value": "15000"
+            },
+            {
+                "name": "ProxyEgressPort",
+                "value": "15001"
+            },
+            {
+                "name": "EgressIgnoredPorts",
+                "value": "443"
+            },
+            {
+                "name": "EgressIgnoredIPs",
+                "value": "169.254.170.2,169.254.169.254"
+            }
+        ]
+    }
+}

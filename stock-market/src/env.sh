@@ -1,0 +1,27 @@
+export STOCK_PUBLISH_PRICES="market/publish-prices"
+export STOCK_WATCH_TRADES="market/watch-trades"
+
+export PRICE_TOPIC_ARN="arn:aws:sns:ap-northeast-1:<account-id>:send-stock-prices"
+export PRICE_TOPIC_NAME="send-stock-prices"
+export CONTRACT_TRADE_TOPIC_ARN="arn:aws:sns:ap-northeast-1:<account-id>:send-stock-contract-trades"
+export CONTRACT_TRADE_TOPIC_NAME="send-stock-contract-trades"
+export AWS_REGION="ap-northeast-1"
+export SAMPLE_STOCK_CODE="A002"
+export SAMPLE_STOCK_NAME="Sample IT Company2"
+export FIRST_PRICE="A002"
+
+export STOCK_ORDER_TRADE_QUE="https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-order-trades-que"
+export STOCK_ORDER_TRADE_QUE_NAME="stock-order-trades-que"
+export STOCK_ORDER_TRADE_MAX_MESSAGES="10"
+export STOCK_ORDER_TRADE_POLLING_TIME="20"
+
+export GET_PRICE_MINUTE="5"
+export GET_NEXT_PRICE_WAIT_SECOND="60"
+
+export PRICE_QUE_URL="https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-prices-que"
+export PRICE_QUE_NAME="stock-prices-que"
+export STOCK_PRICE_MESSAGE_MODE="sqs"
+export CONTRACT_TRADE_QUE_URL="https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-contract-trades-que"
+export CONTRACT_TRADE_QUE_NAME="stock-contract-trades-que"
+export CONTRACT_TRADE_MESSAGE_MODE="sqs"
+export SERVICE_NAME="stock-market-service"
