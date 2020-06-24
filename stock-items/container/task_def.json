@@ -1,0 +1,188 @@
+{
+    "family": "stock-items",
+    "taskRoleArn": "arn:aws:iam::<account-id>:role/ECSTaskRole",
+    "executionRoleArn": "arn:aws:iam::<account-id>:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "api-endpoint",
+            "image": "<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/fin-micro/stock-items/stock-api-endpoint:latest",
+            "portMappings": [
+                {
+                    "containerPort": 8080,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                { "name": "DBMS", "value": "mysql" },
+                { "name": "DB_USERNAME", "value": "user" },
+                { "name": "DB_PASSWORD", "value": "password" },
+                { "name": "DB_HOST_MASTER", "value": "(<rds-endpoint>:3306)" },
+                { "name": "DB_HOST_READ", "value": "(<rds-endpoint>:3306)" },
+                { "name": "DB_NAME", "value": "StockItems" },
+                { "name": "PORT_NUMBER", "value": "8080" },
+                { "name": "STOCK_PRICE_QUE", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-prices-que" },
+                { "name": "STOCK_PRICE_QUE_NAME", "value": "stock-prices-que" },
+                { "name": "AWS_REGION", "value": "ap-northeast-1" },
+                { "name": "STOCK_PRICE_MAX_MESSAGES", "value": "10" },
+                { "name": "STOCK_PRICE_POLLING_TIME", "value": "20" },
+                { "name": "SERVICE_NAME", "value": "stock-items-service" }
+            ],
+            "ulimits": [
+                {
+                    "name": "msgqueue",
+                    "softLimit": 0,
+                    "hardLimit": 0
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-items",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "apl"
+                }
+            }
+        },
+        {
+            "name": "watch-market-prices",
+            "image": "<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/fin-micro/stock-items/stock-watch-prices:latest",
+            "essential": true,
+            "environment": [
+                { "name": "DBMS", "value": "mysql" },
+                { "name": "DB_USERNAME", "value": "user" },
+                { "name": "DB_PASSWORD", "value": "password" },
+                { "name": "DB_HOST_MASTER", "value": "(<rds-endpoint>:3306)" },
+                { "name": "DB_HOST_READ", "value": "(<rds-endpoint>:3306)" },
+                { "name": "DB_NAME", "value": "StockItems" },
+                { "name": "PORT_NUMBER", "value": "8080" },
+                { "name": "STOCK_PRICE_QUE", "value": "https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-prices-que" },
+                { "name": "STOCK_PRICE_QUE_NAME", "value": "stock-prices-que" },
+                { "name": "AWS_REGION", "value": "ap-northeast-1" },
+                { "name": "STOCK_PRICE_MAX_MESSAGES", "value": "10" },
+                { "name": "STOCK_PRICE_POLLING_TIME", "value": "20" },
+                { "name": "SERVICE_NAME", "value": "stock-items-service" }
+            ],
+            "ulimits": [
+                {
+                    "name": "msgqueue",
+                    "softLimit": 0,
+                    "hardLimit": 0
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-items",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "apl"
+                }
+            }
+        },
+        {
+            "name": "envoy",
+            "image": "840364872350.dkr.ecr.us-west-2.amazonaws.com/aws-appmesh-envoy:v1.12.1.0-prod",
+            "essential": true,
+            "memory": "500",
+            "environment": [
+                {
+                    "name": "APPMESH_VIRTUAL_NODE_NAME",
+                    "value": "mesh/fin-apps/virtualNode/stock-items-service"
+                },
+                {
+                    "name": "ENABLE_ENVOY_XRAY_TRACING",
+                    "value": "1"
+                }
+            ],
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE"
+                ],
+                "startPeriod": 10,
+                "interval": 5,
+                "timeout": 2,
+                "retries": 3
+            },
+            "user": "1337",
+            "portMappings": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-items",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "envoy"
+                }
+            }
+        },
+        {
+            "name": "xray-daemon",
+            "image": "amazon/aws-xray-daemon",
+            "cpu": 32,
+            "memoryReservation": 256,
+            "portMappings" : [
+                {
+                    "hostPort": 0,
+                    "containerPort": 2000,
+                    "protocol": "udp"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/stock-items",
+                    "awslogs-region": "ap-northeast-1",
+                    "awslogs-stream-prefix": "xray-daemon"
+                }
+            }
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "memory": "512",
+    "cpu": "256",
+    "tags": [
+        {
+            "key": "Name",
+            "value": "stock-items"
+        }
+    ],
+    "volumes": [],
+    "placementConstraints": [],
+    "proxyConfiguration": {
+        "containerName": "envoy",
+        "type": "APPMESH",
+        "properties": [
+            {
+                "name": "IgnoredUID",
+                "value": "1337"
+            },
+            {
+                "name": "IgnoredGID",
+                "value": ""
+            },
+            {
+                "name": "AppPorts",
+                "value": "8080"
+            },
+            {
+                "name": "ProxyIngressPort",
+                "value": "15000"
+            },
+            {
+                "name": "ProxyEgressPort",
+                "value": "15001"
+            },
+            {
+                "name": "EgressIgnoredPorts",
+                "value": "443,3306"
+            },
+            {
+                "name": "EgressIgnoredIPs",
+                "value": "169.254.170.2,169.254.169.254"
+            }
+        ]
+    }
+}

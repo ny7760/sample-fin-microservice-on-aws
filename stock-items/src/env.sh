@@ -1,0 +1,15 @@
+export DBMS="mysql"
+export DB_USERNAME="user"
+export DB_PASSWORD="password"
+export DB_HOST_MASTER="(127.0.0.1:3306)"
+export DB_HOST_READ="(127.0.0.1:3306)"
+export DB_NAME="StockItems"
+export PORT_NUMBER="8080"
+
+export STOCK_PRICE_QUE="https://sqs.ap-northeast-1.amazonaws.com/<account-id>/stock-prices-que"
+export STOCK_PRICE_QUE_NAME="stock-prices-que"
+export AWS_REGION="ap-northeast-1"
+export STOCK_PRICE_MAX_MESSAGES="10"
+export STOCK_PRICE_POLLING_TIME="20"
+
+export SERVICE_NAME="stock-items-service"

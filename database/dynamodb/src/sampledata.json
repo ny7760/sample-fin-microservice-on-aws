@@ -1,0 +1,9 @@
+{
+    "StockTrade.max_number": 
+        [
+            {
+                "column_name" : "trade_no",
+                "max_value": 10011
+            }
+        ]
+}
